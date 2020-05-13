@@ -6,18 +6,10 @@ import random
 
 from models import setup_db, Question, Category
 
-def create_app(test_config=None):
-  # create and configure the app
-  app = Flask(__name__)
-  setup_db(app)
-  CORS(app)
-  cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-  '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-  '''
+QUESTIONS_PER_PAGE = 10
+
 def paginate_questions(request, selection):
-  QUESTIONS_PER_PAGE = 10
-  page = request.args.get('page',1,type==int)
+  page = request.args.get('page', 1,type=int)
   start = (page - 1) * QUESTIONS_PER_PAGE
   end = start + QUESTIONS_PER_PAGE
 
@@ -26,7 +18,15 @@ def paginate_questions(request, selection):
 
   return current_questions
 
+def create_app(test_config=None):
+  # create and configure the app
+  app = Flask(__name__)
+  setup_db(app)
+  CORS(app, resources={'/':{'origins':"*"}})
   '''
+  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+  '''
+  ''' 
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
   @app.after_request
@@ -39,9 +39,9 @@ def paginate_questions(request, selection):
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
-  @app.route('/categories')
+  @app.route('/categories', methods=['GET'])
   def get_categories():
-    categories = Category.query.all()
+    categories = Category.query.order_by(Category.id).all()
     formatted_category = [category.format() for category in categories]
     return jsonify({
       'success':True,
@@ -63,13 +63,22 @@ def paginate_questions(request, selection):
   '''
   @app.route('/questions', methods=['GET'])
   def get_questions():
-    selection = Question.query.all(Question.id)
+    #get questions
+    selection = Question.query.order_by(Question.id).all()
     current_questions = paginate_questions(request, selection)
+    
+    #get category list
+    categories = Category.query.all()
+    category_list = {}
+    for category in categories:
+      category_list[category.id] = category.type
 
     return jsonify({
       'success':True,
       'questions':current_questions,
-      'total questions':len(Question.query.all())
+      'categories': category_list,
+      'totalQuestions':len(Question.query.all()),
+      'current_category': None
     })
 
 
@@ -91,6 +100,32 @@ def paginate_questions(request, selection):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.  
   '''
+  @app.route('/questions', methods=['POST'])
+  def add_question():
+    
+    body = request.get_json()
+    
+    new_question = body.get('question', None)
+    new_answer_text = body.get('answer', None)
+    new_category = body.get('category', None)
+    new_difficulty_score = body.get('difficulty', None)
+
+    try:
+      question = Question(question=new_question,answer=new_answer_text,category=new_category,difficulty=new_difficulty_score)
+      question.insert()
+
+      selection = Question.query.order_by(Question.id).all()
+      current_questions = paginate_questions(request, selection)
+
+      return jsonify({
+        'success':True,
+        'created':Question.id,
+        #'questions':current_questions,
+        #'total questions':len(Question.query.all())
+      })
+    
+    except:
+      abort(422)
 
   '''
   @TODO: 
