@@ -141,8 +141,8 @@ def create_app(test_config=None):
       return jsonify({
         'success':True,
         'created':Question.id,
-        #'questions':current_questions,
-        #'total questions':len(Question.query.all())
+        'questions':current_questions,
+        'total questions':len(Question.query.all())
       })
     
     except:
@@ -159,6 +159,24 @@ def create_app(test_config=None):
   Try using the word "title" to start. 
   '''
 
+  @app.route('/questions/search', methods=['POST'])
+  def search_question():
+    try:
+      #define search term
+      body = request.get_json()
+      search_term = body.get('search_term','')
+      result = Question.query.filter(Question.question.ilike('%{}%'.format(search_term))).all()
+      formatted_questions = [question.format() for question in result]
+
+      return jsonify({
+        'success':True,
+        'questions':formatted_questions[start:end],
+        'total_questions':len(result),
+        'current_category':None
+      })
+    except:
+      abort(422)
+
   '''
   @TODO: 
   Create a GET endpoint to get questions based on category. 
@@ -167,6 +185,19 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
+  app.route('/categories/<int:question_id>/questions', methods=['GET'])
+  def get_questions_by_category(category_id):
+    try:
+      questions = Question.query.filter_by(category = str(category_id)).all()
+      questions_results = paginate_questions(result, selection)
+      return jsonify({
+        'success':True,
+        'questions':questions_results,
+        'total_questions':len(questions),
+        'current_category':None
+      })
+    except:
+      abort(422)
 
 
   '''
@@ -186,6 +217,22 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
+  
+  @app.errorhandler(404)
+  def not_found_error(error):
+    return jsonify({
+      'success':False,
+      'error':404,
+      'message':"Not Found"
+    })
+
+  @app.errorhandler(422)
+  def unprocessable(error):
+    return jsonify({
+      'success':False,
+      'error':422,
+      'message':"Unable to process the request"
+    })
   
   return app
 
