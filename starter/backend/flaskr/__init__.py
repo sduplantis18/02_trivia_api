@@ -170,7 +170,7 @@ def create_app(test_config=None):
 
       return jsonify({
         'success':True,
-        'questions':formatted_questions[start:end],
+        'questions':formatted_questions,
         'total_questions':len(result),
         'current_category':None
       })
@@ -185,21 +185,19 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
-  app.route('/categories/<int:question_id>/questions', methods=['GET'])
+  app.route('/categories/<int:category_id>/questions', methods=['GET'])
   def get_questions_by_category(category_id):
     try:
-      questions = Question.query.filter_by(category = str(category_id)).all()
-      questions_results = paginate_questions(result, selection)
+      questions = Question.query.filter_by(category=str(category_id)).all()
+      formatted_questions = paginate_questions(request, questions)
       return jsonify({
         'success':True,
-        'questions':questions_results,
-        'total_questions':len(questions),
-        'current_category':None
+        'questions':formatted_questions,
+        'total_questions':len(Question.query.all()),
+        'current_category':category.type
       })
     except:
       abort(422)
-
-
   '''
   @TODO: 
   Create a POST endpoint to get questions to play the quiz. 
@@ -211,13 +209,27 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  app.route('/quizzes', methods=['POST'])
+  def play_quiz():
+    
+    #setup request body
+    body = request.get_json()
+    #get quizz categories
+    category = body.get('quiz_category')
+    #get previous question
+    previous_questions = body.get('previous_quetsion')
+
+    return jsonify({
+      'success':True
+    })
+
 
   '''
   @TODO: 
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
-  
+  #404 error handler
   @app.errorhandler(404)
   def not_found_error(error):
     return jsonify({
@@ -225,7 +237,7 @@ def create_app(test_config=None):
       'error':404,
       'message':"Not Found"
     })
-
+  #422 error handler
   @app.errorhandler(422)
   def unprocessable(error):
     return jsonify({
