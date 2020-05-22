@@ -165,9 +165,10 @@ def create_app(test_config=None):
       #define search term
       body = request.get_json()
       search_term = body.get('search_term','')
+      #filter questions by search term
       result = Question.query.filter(Question.question.ilike('%{}%'.format(search_term))).all()
+      #format questions
       formatted_questions = [question.format() for question in result]
-
       return jsonify({
         'success':True,
         'questions':formatted_questions,
@@ -219,21 +220,31 @@ def create_app(test_config=None):
       #get previous question
       previous_questions = body.get('previous_questions')
       
+      #get all questions if ALL is selected
       if category["id"] == 0:
-        questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
+        questions = Question.query.all()
+      #load questions for specific category  
       else:
-        questions = Question.query.filter(Question.category == category["id"] and Question.id.notin_(previous_questions)).all()
-      new_question = random.choices(questions, k=1)
-      next_question = Question.query.filter_by(id = new_question[0].id).one_or_none()
-        
+        questions = Question.query.filter_by(category = category["id"]).all()
+      #select random question from questions
+      def random_question():
+          return questions[random.randrange(0, len(questions), 1)]
+      new_question = random_question()
+
+      #check if new quetsion has been used already
+      found = True
+      while found:
+        if new_question.id in previous_questions:
+          new_question = random_question()
+        else:
+          found = False
 
       return jsonify({
         'success':True,
-        'question':next_question.fomat()
+        'question':new_question.fomat()
       })
     except:
       abort(422)
-
 
   '''
   @TODO: 
