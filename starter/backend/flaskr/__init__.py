@@ -211,17 +211,28 @@ def create_app(test_config=None):
   '''
   app.route('/quizzes', methods=['POST'])
   def play_quiz():
-    
-    #setup request body
-    body = request.get_json()
-    #get quizz categories
-    category = body.get('quiz_category')
-    #get previous question
-    previous_questions = body.get('previous_quetsion')
+    try:
+      #setup request body
+      body = request.get_json()
+      #get quizz categories
+      category = body.get("quiz_category")
+      #get previous question
+      previous_questions = body.get('previous_questions')
+      
+      if category["id"] == 0:
+        questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
+      else:
+        questions = Question.query.filter(Question.category == category["id"] and Question.id.notin_(previous_questions)).all()
+      new_question = random.choices(questions, k=1)
+      next_question = Question.query.filter_by(id = new_question[0].id).one_or_none()
+        
 
-    return jsonify({
-      'success':True
-    })
+      return jsonify({
+        'success':True,
+        'question':next_question.fomat()
+      })
+    except:
+      abort(422)
 
 
   '''
