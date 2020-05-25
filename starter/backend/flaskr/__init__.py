@@ -126,11 +126,11 @@ def create_app(test_config=None):
     
     body = request.get_json()
     
-    new_question = body.get('question', None)
-    new_answer_text = body.get('answer', None)
-    new_category = body.get('category', None)
-    new_difficulty_score = body.get('difficulty', None)
-
+    new_question = body.get('question')
+    new_answer_text = body.get('answer')
+    new_difficulty_score = body.get('difficulty')
+    new_category = body.get('category')
+    
     try:
       question = Question(question=new_question,answer=new_answer_text,category=new_category,difficulty=new_difficulty_score)
       question.insert()
@@ -186,10 +186,14 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
-  app.route('/categories/<int:category_id>/questions', methods=['GET'])
+  @app.route('/categories/<int:category_id>/questions', methods=['GET'])
   def get_questions_by_category(category_id):
     try:
-      questions = Question.query.filter_by(category=str(category_id)).all()
+      #filter by selected category
+      category = Category.query.filter_by(id = category_id).one_or_none()
+      #get questions based on selected category
+      questions = Question.query.filter_by(category = category.id).all()
+      #format paginated questions
       formatted_questions = paginate_questions(request, questions)
       return jsonify({
         'success':True,
@@ -210,42 +214,26 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
-  app.route('/quizzes', methods=['POST'])
-  def play_quiz():
-    try:
-      #setup request body
-      body = request.get_json()
-      #get quizz categories
-      category = body.get("quiz_category")
-      #get previous question
-      previous_questions = body.get('previous_questions')
-      
-      #get all questions if ALL is selected
-      if category["id"] == 0:
-        questions = Question.query.all()
-      #load questions for specific category  
-      else:
-        questions = Question.query.filter_by(category = category["id"]).all()
-      #select random question from questions
-      def random_question():
-          return questions[random.randrange(0, len(questions), 1)]
-      new_question = random_question()
-
-      #check if new quetsion has been used already
-      found = True
-      while found:
-        if new_question.id in previous_questions:
-          new_question = random_question()
+  # solution provided by mentor Manish b on udacity help forums. Note to reviewer. 
+  # I have really struggled with this endpoint and even with a working solution i am stil getting a react error. Maybe you can help me identify whats wrong i cant seem to find any clarity elswhere.
+  @app.route("/quizzes", methods=['POST'])
+  def get_question_for_quiz():
+    if request.data:
+      search_data = json.loads(request.data.decode('utf-8'))
+      if (('quiz_category' in search_data and 'id' in search_data['quiz_category']) and 'previous_questions' in search_data):
+        questions_query = Question.query.filter_by(category=search_data['quiz_category']['id']).filter(Question.id.notin_(search_data['previous_questions'])).all()
+        length_of_available_question = len(questions_query)
+        if length_of_available_question > 0:
+          result = {
+            'success': True,
+            'question': Question.format(questions_query[random.randrange(0, length_of_available_question)])
+          }
         else:
-          found = False
-
-      return jsonify({
-        'success':True,
-        'question':new_question.fomat()
-      })
-    except:
-      abort(422)
-
+          result = {
+            'success':True,
+            'question': None
+          }
+    return jsonify(result)
   '''
   @TODO: 
   Create error handlers for all expected errors 
