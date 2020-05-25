@@ -9,7 +9,7 @@ database_path = "postgres://{}:{}@{}/{}".format('sdupl','&&&&&&','localhost:5432
 db = SQLAlchemy()
 
 
-'''
+''''
 setup_db(app)
     binds a flask application and a SQLAlchemy service
 '''
