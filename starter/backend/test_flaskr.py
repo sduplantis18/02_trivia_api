@@ -73,6 +73,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.Client().get('/questions')
         data = json.loads(res.data)
 
+
     def test_delete_question(self):
         res = self.client().delete(f'/questions/{question_id}')
         data = json.loads(res.data)
