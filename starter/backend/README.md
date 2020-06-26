@@ -66,29 +66,6 @@ One note before you delve into your tasks: for each endpoint you are expected to
 8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
 9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
 
-REVIEW_COMMENT
-```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
-
-Endpoints
-GET '/categories'
-GET ...
-POST ...
-DELETE ...
-
-GET '/categories'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
-
-```
-
 
 ## Testing
 To run the tests, run
@@ -97,4 +74,119 @@ dropdb trivia_test
 createdb trivia_test
 psql trivia_test < trivia.psql
 python test_flaskr.py
+```
+
+To run the flask tests, run the following command:
+python -m unittest discover -t ../
+```
+
+## API Documentation
+* GET "/categories"
+    - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+    - Request Parameters: None
+    - Response Body:
+    
+    `categories`:{
+    '1' : "Science",
+    '2' : "Art",
+    '3' : "Geography",
+    '4' : "History",
+    '5' : "Entertainment",
+    '6' : "Sports"}
+
+```
+
+* GET "/questions?page=1"
+    - Fetches the questions to be displayed on the page using page number
+    - Request Parameters: `page`: Page number
+    - Response Body:
+```json
+{
+  "questions": [{
+    "id": 1,
+    "question": "",
+    "answer": "",
+    "category": 1,
+    "difficulty": 1
+  }],
+  "categories": {
+    "1": "Science",
+    "2": "Art"
+  },
+  "total_questions": 1
+}
+```
+
+* DELETE "/questions/<int:question_id>"
+    - Deletes a question from the database
+    - Request Parameters: `question_id`: Question ID to delete
+    - Response Body:
+```json
+{
+  "deleted": 20
+}
+```
+
+* POST "/questions"
+    - Adds a questions to the database
+    - Request Body:
+```json
+{
+  "question": {
+    "id": 1,
+    "question": "",
+    "answer": "",
+    "category": 1,
+    "difficulty": 1
+  }
+}
+```
+
+* POST "/search"
+    - Fetches questions based on the search term
+    - Request Body:
+```json
+{
+  "questions": [{
+    "id": 1,
+    "question": "",
+    "answer": "",
+    "category": 1,
+    "difficulty": 1
+  }],
+  "total_questions": 1
+}
+```
+
+* GET "/categories/<int:category_id>/questions"
+    - Fetches questions for the requested category
+    - Request Parameters: `category_id`: Category ID for questions
+    - Response Body:
+```json
+{
+  "questions": [{
+    "id": 1,
+    "question": "",
+    "answer": "",
+    "category": 1,
+    "difficulty": 1
+  }],
+  "total_questions": 1,
+  "current_category": 1
+}
+```
+
+* POST "/quizzes"
+    - Fetches a unique question for the quiz on selected category
+    - Request Body:
+```json
+{
+  "question": {
+    "id": 1,
+    "question": "",
+    "answer": "",
+    "category": 1,
+    "difficulty": 1
+  }
+}
 ```
