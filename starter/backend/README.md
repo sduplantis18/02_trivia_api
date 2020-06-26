@@ -78,9 +78,9 @@ python test_flaskr.py
 
 To run the flask tests, run the following command:
 python -m unittest discover -t ../
-```
 
 ## API Documentation
+
 * GET "/categories"
     - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
     - Request Parameters: None
