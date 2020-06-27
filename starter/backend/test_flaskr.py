@@ -87,10 +87,10 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_add_question(self):
         test_data = {
-            'question' = "Test question",
-            'answer' = "Test answer",
-            'difficulty' = 1,
-            'category' = 2
+            'question' : "Test question",
+            'answer' : "Test answer",
+            'difficulty' : 1,
+            'category' : 2
         }
         response.self.client().post('/questions', json=test_data)
         data = json.loads(response.data)
