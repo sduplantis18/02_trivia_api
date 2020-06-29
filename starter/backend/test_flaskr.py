@@ -70,20 +70,19 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['categories']))
     
     def test_get_questions_failure(self):
-        res = self.Client().get('/questions')
-        data = json.loads(res.data)
+        res = self.client().get('/questions?page=1000')
+        self.assertEqual(res.status_code, 404)
 
 
     def test_delete_question(self):
-        res = self.client().delete(f'/questions/{question_id}')
+        #Test with hardcoded question id that exists in the db. 
+        res = self.client().delete('/questions/3')
         data = json.loads(res.data)
-        
-        question = Question.query.filter(Question.id == question.id).one_or_none()
-
+    
         self.assertEqual(res.status_code,200)
-        self.assertEqual(data['success', True])
-        self.assertEqual(data['deleted'], str(question_id))
-        self.assertEqual(question, None)
+        self.assertEqual(data['success'],True)
+        self.assertEqual(data['deleted'],True)
+        self.assertEqual(data['id'],3)
 
     def test_add_question(self):
         test_data = {
@@ -92,7 +91,7 @@ class TriviaTestCase(unittest.TestCase):
             'difficulty' : 1,
             'category' : 2
         }
-        response.self.client().post('/questions', json=test_data)
+        response = self.client().post('/questions', json=test_data)
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 201)
