@@ -53,13 +53,13 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_get_category_without_result(self):
         #tested with invalid category
-        category_id = 0
+        category_id = 1000
         res = self.client().get(f'/categories/{category_id}/questions')
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'resource not found')
+        self.assertEqual(data['message'], 'Not Found')
 
     def test_get_questions(self):
         res = self.client().get('/questions')
@@ -73,12 +73,12 @@ class TriviaTestCase(unittest.TestCase):
     
     def test_get_questions_failure(self):
         #tested with invalid page number
-        res = self.client().get('/questions?page=10000')
+        res = self.client().get('/questions?page=1000')
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'],'resource not found')
+        self.assertEqual(data['message'],'Not Found')
 
     def test_delete_question(self):
         #Test with hardcoded question id that exists in the db. 
@@ -116,7 +116,8 @@ class TriviaTestCase(unittest.TestCase):
                              request_data['previous_questions'])
 
     def test_fail_get_questions_for_quiz(self):
-        res = self.client().post('/quizzes', data=json.dumps({}), content_type='application/json')
+        #no post data supplied
+        res = self.client().post('/quizzes', json={})
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 400)
         self.assertEqual(data['success'], False)
