@@ -72,7 +72,7 @@ def create_app(test_config=None):
       current_questions = paginate_questions(request, selection, QUESTIONS_PER_PAGE)
 
       #throw an error if the current_questions exceeds the page number
-      if (len(current_questions) == 0):
+      if len(current_questions) == 0:
         abort(404)
       
       #get category list
@@ -85,8 +85,7 @@ def create_app(test_config=None):
         'success':True,
         'questions':current_questions,
         'categories': category_list,
-        'totalQuestions': total_questions,
-        'current_category': None
+        'totalQuestions': total_questions
       })
     except:
       abort(404)
@@ -103,6 +102,7 @@ def create_app(test_config=None):
   '''
   @app.route('/questions/<int:question_id>', methods=['DELETE'])
   def delete_question(question_id):
+    
     try:
       #get question by id
       question = Question.query.filter(Question.id == question_id).one_or_none()
@@ -135,13 +135,12 @@ def create_app(test_config=None):
   '''
   @app.route('/questions', methods=['POST'])
   def add_question():
-    
     body = request.get_json()
-    
-    new_question = body.get('question')
-    new_answer_text = body.get('answer')
-    new_difficulty_score = body.get('difficulty')
-    new_category = body.get('category')
+
+    new_question = body.get('question',None)
+    new_answer_text = body.get('answer', None)
+    new_difficulty_score = body.get('difficulty', None)
+    new_category = body.get('category', None)
     
     try:
       question = Question(question=new_question,answer=new_answer_text,category=new_category,difficulty=new_difficulty_score)
@@ -265,7 +264,7 @@ def create_app(test_config=None):
       'success':False,
       'error':404,
       'message':"Not Found"
-    })
+    }), 404
 
   #422 error handler
   @app.errorhandler(422)
@@ -274,7 +273,7 @@ def create_app(test_config=None):
       'success':False,
       'error':422,
       'message':"Unable to process the request"
-    })
+    }), 422
 
   #400 error handler
   @app.errorhandler(400)

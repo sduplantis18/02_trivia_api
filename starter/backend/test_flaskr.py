@@ -57,7 +57,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get(f'/categories/{category_id}/questions')
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'Not Found')
 
@@ -76,7 +76,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/questions?page=1000')
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'],'Not Found')
 
@@ -89,18 +89,39 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code,200)
         self.assertEqual(data['success'],True)
         self.assertEqual(data['deleted'], 12)
+    
+    def test_delete_question_fail(self):
+        #test with invalid question id
+        question_id = 5000
+        res = self.client().delete('/questions/1000')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'],'Unable to process the request')
 
     def test_add_question(self):
         test_data = {
-            'question' : "Test question",
-            'answer' : "Test answer",
+            'question' : 'New Question',
+            'answer' : 'New Answer',
             'difficulty' : 1,
             'category' : 2
         }
-        response = self.client().post('/questions', json=test_data)
-        data = json.loads(response.data)
+        res = self.client().post('/questions', json=test_data)
+        data = json.loads(res.data)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        
+
+    def test_add_question_fail(self):
+        #fail when attemping to post new question with empty json
+        test_data = {}
+        res = self.client().post('/questions/', json=test_data)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
 
     def test_pass_get_quiz_questions(self):
         request_data = {
@@ -119,7 +140,23 @@ class TriviaTestCase(unittest.TestCase):
         #no post data supplied
         res = self.client().post('/quizzes', json={})
         data = json.loads(res.data)
-        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+    
+    def test_search_question(self):
+        search_term = {'search_term':'test'}
+        res = self.client().post('/questions/search', json=search_term)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+    
+    def fail_search_question(self):
+        search_term = {'search_term':''}
+        res = self.client().post('/questions/search', json=search_term)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
 
 
